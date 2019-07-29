@@ -1,5 +1,6 @@
 # zeek-notice-mattermost
 Script extending Zeek Notice framework, adding Mattermost notifications.
+Based on [bro-notice-slack](https://github.com/pgaulon/bro-notice-slack).
 
 ## Usage
 Append to zeek_install/share/zeek/site/local.zeek:
