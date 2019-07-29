@@ -1,22 +1,20 @@
-# bro-notice-slack
-Script extending Bro Notice framework, adding Slack notifications.
+# zeek-notice-mattermost
+Script extending Zeek Notice framework, adding Mattermost notifications.
 
 ## Usage
-Append to bro_install/share/bro/site/local.bro:
+Append to zeek_install/share/zeek/site/local.zeek:
 ```
-@load ./notice_slack.bro
+@load ./notice_mattermost.zeek
 
-redef Notice::slack_webhook_url = "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX";
-redef Notice::slack_emoji = ":eyes:";
-redef Notice::slack_channel = "#bro-channel";
-redef Notice::slack_username = "Big Brother";
+redef Notice::mattermost_webhook_url = "https://your-mattermost-server/hooks/xxx-generatedkey-xxx";
+redef Notice::mattermost_channel = "#zeek-channel";
+redef Notice::mattermost_username = "Big Brother";
 
 hook Notice::policy(n: Notice::Info)
 {
-    add n$actions[Notice::ACTION_SLACK];
+    add n$actions[Notice::ACTION_MATTERMOST];
 }
 ```
 ## TODO
-- Allow \n in Slack text by changing the pattern in to_json()
 - Add timeout block with Reporter::warning after when block  
 - ...

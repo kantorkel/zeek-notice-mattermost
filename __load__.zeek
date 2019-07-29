@@ -1,1 +1,1 @@
-@load ./notice_slack.bro
+@load ./notice_mattermost.zeek

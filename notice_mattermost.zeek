@@ -1,56 +1,54 @@
-##! This script is providing slack notifications for notices
+##! This script is providing mattermost notifications for notices
 
 @load base/frameworks/notice
 @load base/utils/active-http
-@load base/utils/json
 
 module Notice;
 
 export {
     redef enum Action += {
-        ACTION_SLACK,
+        ACTION_MATTERMOST,
     };
 
-    # a Slack_message an enum which will be converted to JSON format
-    # to be sent to the Slack Incoming Webhook
-    type Slack_message: record {
+    # a Mattermost_message an enum which will be converted to JSON format
+    # to be sent to the Mattermost Incoming Webhook
+    type Mattermost_message: record {
         text: string;
         channel: string &optional;
         username: string &optional;
-        icon_emoji: string &optional;
     };
 
-    # Needs to be redefined to match your Slack Incoming Webhook URL
-    const slack_webhook_url = "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX" &redef;
+    # Needs to be redefined to match your Mattermost Incoming Webhook URL
+    const mattermost_webhook_url = "https://your-mattermost-server/hooks/xxx-generatedkey-xxx" &redef;
 
-    # Can be redefined to add a different public channel, username and emoji
-    const slack_channel = "" &redef;
-    const slack_username = "Big Brother" &redef;
-    const slack_emoji = ":eyes:" &redef;
+    # Can be redefined to add a different public channel and username
+    const mattermost_channel = "" &redef;
+    const mattermost_username = "Big Brother" &redef;
 
-    # creates the Slack_message
-    global slack_payload: function(n: Notice::Info, channel: string, username: string, emoji: string): Notice::Slack_message;
-    # converts the Slack_message to JSON and sends it to the Slack Incoming Webhook
-    global slack_send_notice: function(webhook: string, payload: Notice::Slack_message);
+    # creates the Mattermost_message
+    global mattermost_payload: function(n: Notice::Info, channel: string, username: string): Notice::Mattermost_message;
+    # converts the Mattermost_message to JSON and sends it to the Mattermost Incoming Webhook
+    global mattermost_send_notice: function(webhook: string, payload: Notice::Mattermost_message);
 
 }
 
-function slack_send_notice(webhook: string, payload: Notice::Slack_message)
+function mattermost_send_notice(webhook: string, payload: Notice::Mattermost_message)
     {
     local request: ActiveHTTP::Request = ActiveHTTP::Request(
         $url=webhook,
         $method="POST",
+	$addl_curl_args="-H 'Content-Type: application/json'",
         $client_data=to_json(payload)
     );
 
     when ( local result = ActiveHTTP::request(request) )
         {
         if ( result$code != 200 )
-            Reporter::warning(fmt("Slack notice received an error status code: %d", result$code));
+            Reporter::warning(fmt("Mattermost notice received an error status code: %d", result$code));
         }
     }
 
-function slack_payload(n: Notice::Info, channel: string, username: string, emoji: string): Notice::Slack_message
+function mattermost_payload(n: Notice::Info, channel: string, username: string): Notice::Mattermost_message
     {
     local text = fmt("%s: %s", n$note, n$msg);
     if ( n?$sub )
@@ -69,12 +67,12 @@ function slack_payload(n: Notice::Info, channel: string, username: string, emoji
     else if ( n?$src )
         text = string_cat(text, fmt(", Source: %s", n$src));
 
-    local message: Slack_message = Slack_message($text=text, $channel=channel, $username=username, $icon_emoji=emoji);
+    local message: Mattermost_message = Mattermost_message($text=text, $channel=channel, $username=username);
     return message;
     }
 
 hook notice(n: Notice::Info)
     {
-        if ( ACTION_SLACK in n$actions )
-            slack_send_notice(slack_webhook_url, slack_payload(n, slack_channel, slack_username, slack_emoji));
+        if ( ACTION_MATTERMOST in n$actions )
+            mattermost_send_notice(mattermost_webhook_url, mattermost_payload(n, mattermost_channel, mattermost_username));
     }
